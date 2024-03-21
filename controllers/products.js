@@ -1,9 +1,12 @@
+const Product = require("../models/product");
+
 const getAllProducts = async (req, res) => {
-  res.send("get all procuts");
+  const allProducts = await Product.find({});
+  res.status(200).json({ success: true, data: allProducts });
 };
 const addProdcut = async (req, res) => {
-  const data = req.body;
-  res.send("add prodcut" + data);
+  const product = await Product.create(req.body);
+  res.status(201).json({ success: true, data: product });
 };
 const updateProduct = async (req, res) => {
   const id = req.params.id;
