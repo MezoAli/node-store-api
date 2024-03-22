@@ -19,7 +19,11 @@ const deleteProduct = async (req, res) => {
 };
 const getSingleProduct = async (req, res) => {
   const id = req.params.id;
-  res.send(`get single prodcut with id ${id}`);
+  const product = await Product.findById(id);
+  if (!product) {
+    throw new Error(`can't find product with id ${id}`);
+  }
+  res.status(200).json({ success: true, data: product });
 };
 
 module.exports = {

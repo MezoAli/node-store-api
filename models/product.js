@@ -20,7 +20,7 @@ const ProductSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
-      required: [true, "Please enter rating"],
+      default: 4.5,
     },
     featured: {
       type: Boolean,
