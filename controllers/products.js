@@ -1,8 +1,19 @@
 const Product = require("../models/product");
 
 const getAllProducts = async (req, res) => {
-  const allProducts = await Product.find({});
-  res.status(200).json({ success: true, data: allProducts });
+  const searchOptions = {};
+  const name = req.query.name;
+  const company = req.query.company;
+  if (name) {
+    searchOptions.name = { $regex: name, $options: "i" };
+  }
+  if (company) {
+    searchOptions.company = { $regex: company, $options: "i" };
+  }
+  const allProducts = await Product.find(searchOptions);
+  res
+    .status(200)
+    .json({ success: true, length: allProducts.length, data: allProducts });
 };
 const addProdcut = async (req, res) => {
   const product = await Product.create(req.body);
@@ -10,12 +21,16 @@ const addProdcut = async (req, res) => {
 };
 const updateProduct = async (req, res) => {
   const id = req.params.id;
-  const data = req.body;
-  res.send(`update prodcut id: ${id} and data of ${data}`);
+  const product = await Product.findByIdAndUpdate(id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(201).json({ success: true, data: product });
 };
 const deleteProduct = async (req, res) => {
   const id = req.params.id;
-  res.send(`delete prodcut id: ${id}`);
+  await Product.findByIdAndDelete(id);
+  res.status(201).json({ success: true, msg: "Product deleted successfully" });
 };
 const getSingleProduct = async (req, res) => {
   const id = req.params.id;
