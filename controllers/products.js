@@ -4,16 +4,29 @@ const getAllProducts = async (req, res) => {
   const searchOptions = {};
   const name = req.query.name;
   const company = req.query.company;
+  const featured = req.query.featured;
+  const page = req.query.page;
+  const currentPageNumber = Number(page) || 1;
+  const productsPerPage = 6;
+  const skip = productsPerPage * (currentPageNumber - 1);
   if (name) {
     searchOptions.name = { $regex: name, $options: "i" };
   }
   if (company) {
     searchOptions.company = { $regex: company, $options: "i" };
   }
-  const allProducts = await Product.find(searchOptions);
-  res
-    .status(200)
-    .json({ success: true, length: allProducts.length, data: allProducts });
+  if (featured) {
+    searchOptions.featured = featured === "true" ? true : false;
+  }
+  const allProducts = await Product.find(searchOptions)
+    .limit(productsPerPage)
+    .skip(skip);
+  res.status(200).json({
+    success: true,
+    length: allProducts.length,
+    currentPageNumber,
+    data: allProducts,
+  });
 };
 const addProdcut = async (req, res) => {
   const product = await Product.create(req.body);
