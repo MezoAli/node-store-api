@@ -6,8 +6,10 @@ const getAllProducts = async (req, res) => {
   const company = req.query.company;
   const featured = req.query.featured;
   const page = req.query.page;
+  const sort = req.query.sort;
+  const fields = req.query.fields;
   const currentPageNumber = Number(page) || 1;
-  const productsPerPage = 6;
+  const productsPerPage = Number(req.query.limit) || 10;
   const skip = productsPerPage * (currentPageNumber - 1);
   if (name) {
     searchOptions.name = { $regex: name, $options: "i" };
@@ -18,9 +20,27 @@ const getAllProducts = async (req, res) => {
   if (featured) {
     searchOptions.featured = featured === "true" ? true : false;
   }
-  const allProducts = await Product.find(searchOptions)
+  let select;
+  if (fields) {
+    select = fields.split(",").join(" ");
+  }
+  let result = Product.find(searchOptions)
     .limit(productsPerPage)
-    .skip(skip);
+    .skip(skip)
+    .select(select)
+    .sort();
+
+  if (sort) {
+    const sortedList = sort.split(",").join(" ");
+    console.log(sort);
+    console.log(sortedList);
+    result = result.sort(sortedList);
+  } else {
+    result = result.sort("createdAt");
+  }
+
+  const allProducts = await result;
+
   res.status(200).json({
     success: true,
     length: allProducts.length,
