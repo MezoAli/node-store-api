@@ -8,6 +8,7 @@ const getAllProducts = async (req, res) => {
   const page = req.query.page;
   const sort = req.query.sort;
   const fields = req.query.fields;
+  const numericFilters = req.query.numericFilters;
   const currentPageNumber = Number(page) || 1;
   const productsPerPage = Number(req.query.limit) || 10;
   const skip = productsPerPage * (currentPageNumber - 1);
@@ -23,6 +24,27 @@ const getAllProducts = async (req, res) => {
   let select;
   if (fields) {
     select = fields.split(",").join(" ");
+  }
+  if (numericFilters) {
+    const operatorMap = {
+      ">": "$gt",
+      ">=": "$gte",
+      "=": "$eq",
+      "<": "$lt",
+      "<=": "$lte",
+    };
+    const regEx = /\b(<|>|>=|=|<|<=)\b/g;
+    let filters = numericFilters.replace(
+      regEx,
+      (match) => `-${operatorMap[match]}-`
+    );
+    const options = ["price", "rating"];
+    filters = filters.split(",").forEach((item) => {
+      const [field, operator, value] = item.split("-");
+      if (options.includes(field)) {
+        searchOptions[field] = { [operator]: Number(value) };
+      }
+    });
   }
   let result = Product.find(searchOptions)
     .limit(productsPerPage)
